@@ -46,11 +46,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
           <div className="brand-logo-icon">
             <Calendar size={20} />
           </div>
-          <div className="brand-title">mit<span>.mi</span></div>
+          <div className="brand-title">mit.mi</div>
         </div>
 
         <div className="welcome-hero">
-          <h1>{isRegister ? 'Create account' : 'Welcome back'}</h1>
+          <h1>{isRegister ? 'Załóż konto' : 'Witaj z powrotem'}</h1>
           <p>
             {isRegister
               ? 'Załóż konto, aby tworzyć spotkania i zapisywać swoją dostępność.'

@@ -385,6 +385,7 @@ export const App: React.FC = () => {
 
         {(activeTab === 'grid' || activeTab === 'recommendations') && (
           <BestSlotsCard
+            meeting={details.meeting}
             participants={details.participants}
             bestSlot={bestSlot}
           />

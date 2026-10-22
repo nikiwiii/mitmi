@@ -64,10 +64,10 @@ export const Header: React.FC<HeaderProps> = ({
 
         <section className="welcome-row">
           <div className="welcome-hero">
-            <h1>Welcome Back, {currentUserName}</h1>
+            <h1>{meeting ? meeting.title : 'Wybierz spotkanie'}</h1>
             <p>
               {meeting
-                ? `${meeting.title} — ${meeting.description || 'Wybierz godziny i znajdź wspólny termin z zespołem.'}`
+                ? (meeting.description || 'Wybierz godziny i znajdź wspólny termin z zespołem.')
                 : 'Wybierz spotkanie z listy lub utwórz nowe.'}
             </p>
           </div>
