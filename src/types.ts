@@ -45,4 +45,5 @@ export interface SlotHoverInfo {
   missingUsers: string[];
   x: number;
   y: number;
+  placement?: 'top' | 'bottom';
 }

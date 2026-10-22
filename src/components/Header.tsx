@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="brand-logo-icon">
               <Calendar size={20} />
             </div>
-            <div className="brand-title">mit<span>.mi</span></div>
+            <div className="brand-title">mit.mi</div>
           </div>
 
           <nav className="header-center-nav">

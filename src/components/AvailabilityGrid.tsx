@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, Users, UserCheck, Trash2, Save, Sparkles } from 'lucide-react';
 import { Meeting, UserAvailability, SlotHoverInfo } from '../types.js';
 
@@ -80,6 +81,10 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
         .filter(name => !availableUsers.includes(name));
 
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const showBelow = rect.top < 150;
+      const centerX = rect.left + rect.width / 2;
+      const clampedX = Math.max(130, Math.min(window.innerWidth - 130, centerX));
+
       setHoverInfo({
         date,
         time,
@@ -88,8 +93,9 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
         total: totalParticipants,
         availableUsers,
         missingUsers,
-        x: rect.left + rect.width / 2,
-        y: rect.top
+        x: clampedX,
+        y: showBelow ? rect.bottom + 8 : rect.top - 8,
+        placement: showBelow ? 'bottom' : 'top'
       });
     }
   };
@@ -100,8 +106,13 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
 
   useEffect(() => {
     const onGlobalMouseUp = () => setIsDragging(false);
+    const onScroll = () => setHoverInfo(null);
     window.addEventListener('mouseup', onGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', onGlobalMouseUp);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('mouseup', onGlobalMouseUp);
+      window.removeEventListener('scroll', onScroll, true);
+    };
   }, []);
 
   const formatDateLabel = (dateStr: string) => {
@@ -268,9 +279,9 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
         </div>
       </div>
 
-      {hoverInfo && viewMode === 'heatmap' && (
+      {hoverInfo && viewMode === 'heatmap' && createPortal(
         <div
-          className="slot-hover-tooltip"
+          className={`slot-hover-tooltip placement-${hoverInfo.placement || 'top'}`}
           style={{
             left: `${hoverInfo.x}px`,
             top: `${hoverInfo.y}px`
@@ -316,7 +327,8 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
               </div>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
