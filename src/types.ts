@@ -6,7 +6,22 @@ export interface Meeting {
   startHour: number;
   endHour: number;
   createdAt: string;
+  ownerId?: string | null;
 }
+
+export interface MeetingSummary extends Meeting {
+  participantCount: number;
+  isOwner: boolean;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  avatar: string;
+  createdAt: string;
+}
+
+export type Tab = 'grid' | 'recommendations' | 'participants' | 'meetings';
 
 export interface UserAvailability {
   userName: string;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header } from './components/Header.js';
 import { OverviewCard } from './components/OverviewCard.js';
 import { StatCards } from './components/StatCards.js';
@@ -6,32 +6,40 @@ import { AvailabilityGrid } from './components/AvailabilityGrid.js';
 import { BestSlotsCard } from './components/BestSlotsCard.js';
 import { CreateMeetingModal } from './components/CreateMeetingModal.js';
 import { UserProfileModal } from './components/UserProfileModal.js';
-import { MeetingDetails, Meeting, UserAvailability } from './types.js';
+import { AuthScreen } from './components/AuthScreen.js';
+import { MeetingsPanel } from './components/MeetingsPanel.js';
+import { MeetingDetails, MeetingSummary, Tab, User } from './types.js';
 import {
   fetchMeeting,
+  fetchMyMeetings,
+  fetchCurrentUser,
   saveUserAvailability,
   removeUserAvailability,
   createNewMeeting,
-  fetchHealth
+  deleteMeetingById,
+  leaveMeetingById,
+  updateAvatar,
+  getToken,
+  setToken,
+  setUnauthorizedHandler
 } from './api.js';
 import { Check } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(() => !getToken());
+
   const [meetingId, setMeetingId] = useState<string>(() => {
     const hash = window.location.hash.replace('#', '').trim();
     return hash || 'bit-web-2026';
   });
 
   const [details, setDetails] = useState<MeetingDetails | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentUserName, setCurrentUserName] = useState<string>(() => {
-    return localStorage.getItem('mitmi_user_name') || 'Aisha';
-  });
-  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>(() => {
-    return localStorage.getItem('mitmi_user_avatar') || '👑';
-  });
+  const [myMeetings, setMyMeetings] = useState<MeetingSummary[]>([]);
+  const [meetingsLoading, setMeetingsLoading] = useState(false);
 
   const [mySlots, setMySlots] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,8 +47,7 @@ export const App: React.FC = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'grid' | 'recommendations' | 'participants'>('grid');
-  const [dbStatus, setDbStatus] = useState<string>('checking');
+  const [activeTab, setActiveTab] = useState<Tab>('grid');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -49,24 +56,51 @@ export const App: React.FC = () => {
     }, 3200);
   };
 
-  // ladowanie danych spotkania
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    setDetails(null);
+    setMyMeetings([]);
+    setMySlots([]);
+    setActiveTab('grid');
+  }, []);
+
+  // przywrocenie sesji po odswiezeniu strony
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    if (!getToken()) return;
+    fetchCurrentUser()
+      .then(setUser)
+      .catch(() => setToken(null))
+      .finally(() => setAuthChecked(true));
+  }, [logout]);
+
+  const loadMyMeetings = useCallback(async () => {
+    setMeetingsLoading(true);
+    try {
+      setMyMeetings(await fetchMyMeetings());
+    } catch {
+      // lista zostaje pusta
+    } finally {
+      setMeetingsLoading(false);
+    }
+  }, []);
+
+  // ladowanie danych spotkania, otwarcie dodaje uzytkownika do czlonkow
   const loadMeetingData = async (id: string) => {
+    if (!id) {
+      setDetails(null);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const data = await fetchMeeting(id);
       setDetails(data);
-
-      // synchronizacja slotow aktualnego uzytkownika
-      const found = data.participants.find(
-        p => p.userName.toLowerCase() === currentUserName.toLowerCase()
-      );
-      if (found) {
-        setMySlots(found.slots);
-      } else {
-        setMySlots([]);
-      }
+      loadMyMeetings();
     } catch (err: any) {
+      setDetails(null);
       setError(err?.message || 'blad wczytywania spotkania');
     } finally {
       setLoading(false);
@@ -74,31 +108,33 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
     loadMeetingData(meetingId);
-    fetchHealth().then(h => setDbStatus(h.database));
+  }, [meetingId, user?.id]);
 
+  useEffect(() => {
     const handleHashChange = () => {
-      const newId = window.location.hash.replace('#', '').trim() || 'bit-web-2026';
-      setMeetingId(newId);
+      setMeetingId(window.location.hash.replace('#', '').trim());
     };
-
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [meetingId]);
+  }, []);
 
-  // aktualizacja slotow gdy zmienia sie uzytkownik
   useEffect(() => {
-    if (!details) return;
-    const found = details.participants.find(
-      p => p.userName.toLowerCase() === currentUserName.toLowerCase()
-    );
-    if (found) {
-      setMySlots(found.slots);
-      if (found.userAvatar) setCurrentUserAvatar(found.userAvatar);
-    } else {
+    if (user && activeTab === 'meetings') loadMyMeetings();
+  }, [user?.id, activeTab, loadMyMeetings]);
+
+  // slot'y zalogowanego uzytkownika z danych spotkania
+  useEffect(() => {
+    if (!details || !user) {
       setMySlots([]);
+      return;
     }
-  }, [currentUserName, details]);
+    const found = details.participants.find(
+      p => p.userName.toLowerCase() === user.username.toLowerCase()
+    );
+    setMySlots(found ? found.slots : []);
+  }, [user?.username, details]);
 
   // obliczanie najlepszego slotu o najwyzszej frekwencji
   const bestSlot = useMemo(() => {
@@ -124,24 +160,23 @@ export const App: React.FC = () => {
     return { date, time, count: maxCount };
   }, [details]);
 
+  const handleAuthenticated = (token: string, authedUser: User) => {
+    setToken(token);
+    setUser(authedUser);
+    setAuthChecked(true);
+    showToast(`Zalogowano jako ${authedUser.username}`);
+  };
+
   const handleSaveMySlots = async () => {
-    if (!currentUserName.trim()) {
-      setIsUserModalOpen(true);
-      return;
-    }
+    if (!user) return;
     setIsSaving(true);
     try {
-      const updated = await saveUserAvailability(
-        meetingId,
-        currentUserName.trim(),
-        currentUserAvatar,
-        mySlots
-      );
+      const updated = await saveUserAvailability(meetingId, mySlots);
 
       // aktualizacja stanu lokalnego
       if (details) {
         const others = details.participants.filter(
-          p => p.userName.toLowerCase() !== currentUserName.toLowerCase()
+          p => p.userName.toLowerCase() !== user.username.toLowerCase()
         );
         setDetails({
           ...details,
@@ -161,32 +196,49 @@ export const App: React.FC = () => {
     showToast('Wyczyszczono Twoje zaznaczone godziny.');
   };
 
-  const handleRemoveUser = async (name: string) => {
+  const handleRemoveMyAvailability = async () => {
+    if (!user) return;
     try {
-      await removeUserAvailability(meetingId, name);
+      await removeUserAvailability(meetingId);
       if (details) {
         setDetails({
           ...details,
           participants: details.participants.filter(
-            p => p.userName.toLowerCase() !== name.toLowerCase()
+            p => p.userName.toLowerCase() !== user.username.toLowerCase()
           )
         });
       }
-      if (name.toLowerCase() === currentUserName.toLowerCase()) {
-        setMySlots([]);
-      }
-      showToast(`Usunięto zgłoszenie: ${name}`);
+      setMySlots([]);
+      showToast('Usunięto Twoje zgłoszenie.');
     } catch {
       showToast('Błąd usuwania zgłoszenia.');
     }
   };
 
-  const handleSaveProfile = (name: string, avatar: string) => {
-    setCurrentUserName(name);
-    setCurrentUserAvatar(avatar);
-    localStorage.setItem('mitmi_user_name', name);
-    localStorage.setItem('mitmi_user_avatar', avatar);
-    showToast(`Profil zaktualizowany: ${name}`);
+  const handleSaveProfile = async (avatar: string) => {
+    try {
+      const updated = await updateAvatar(avatar);
+      setUser(updated);
+      if (details) {
+        setDetails({
+          ...details,
+          participants: details.participants.map(p =>
+            p.userName.toLowerCase() === updated.username.toLowerCase()
+              ? { ...p, userAvatar: avatar }
+              : p
+          )
+        });
+      }
+      showToast('Ikona profilu zaktualizowana');
+    } catch {
+      showToast('Błąd zapisu profilu.');
+    }
+  };
+
+  const openMeeting = (id: string) => {
+    window.location.hash = id;
+    setMeetingId(id);
+    setActiveTab('grid');
   };
 
   const handleCreateMeeting = async (data: {
@@ -198,11 +250,42 @@ export const App: React.FC = () => {
   }) => {
     try {
       const created = await createNewMeeting(data);
-      window.location.hash = created.id;
-      setMeetingId(created.id);
+      openMeeting(created.id);
       showToast(`Utworzono spotkanie: ${created.title}`);
     } catch {
       showToast('Błąd tworzenia spotkania.');
+    }
+  };
+
+  // po usunieciu lub opuszczeniu otwartego spotkania wracamy do listy
+  const afterMeetingRemoved = (id: string) => {
+    if (id === meetingId) {
+      window.location.hash = '';
+      setMeetingId('');
+      setDetails(null);
+    }
+    loadMyMeetings();
+  };
+
+  const handleDeleteMeeting = async (meeting: MeetingSummary) => {
+    if (!window.confirm(`usunac spotkanie "${meeting.title}" dla wszystkich uczestnikow?`)) return;
+    try {
+      await deleteMeetingById(meeting.id);
+      afterMeetingRemoved(meeting.id);
+      showToast(`Usunięto spotkanie: ${meeting.title}`);
+    } catch (err: any) {
+      showToast(err?.message || 'Błąd usuwania spotkania.');
+    }
+  };
+
+  const handleLeaveMeeting = async (meeting: MeetingSummary) => {
+    if (!window.confirm(`opuscic spotkanie "${meeting.title}"?`)) return;
+    try {
+      await leaveMeetingById(meeting.id);
+      afterMeetingRemoved(meeting.id);
+      showToast(`Opuszczono spotkanie: ${meeting.title}`);
+    } catch (err: any) {
+      showToast(err?.message || 'Błąd opuszczania spotkania.');
     }
   };
 
@@ -217,88 +300,112 @@ export const App: React.FC = () => {
     }
   };
 
-  if (loading && !details) {
+  if (!authChecked) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', color: '#475569' }}>
-        <span>Wczytywanie spotkania mit.mi...</span>
+        <span>Wczytywanie mit.mi...</span>
       </div>
     );
   }
 
-  if (error || !details) {
+  if (!user) {
     return (
-      <div className="dashboard-container" style={{ textAlign: 'center', padding: '60px 20px' }}>
-        <h2>Nie znaleziono spotkania</h2>
-        <p style={{ margin: '12px 0 24px 0', color: '#64748b' }}>
-          {error || 'Podany identyfikator spotkania nie istnieje.'}
-        </p>
-        <button
-          type="button"
-          className="action-btn-primary"
-          style={{ margin: '0 auto' }}
-          onClick={() => {
-            window.location.hash = 'bit-web-2026';
-            setMeetingId('bit-web-2026');
-          }}
-        >
-          Powrót do głównego spotkania koła
-        </button>
-      </div>
+      <>
+        <AuthScreen onAuthenticated={handleAuthenticated} />
+        {toastMessage && (
+          <div className="toast-notification">
+            <Check size={16} color="#2f9e57" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+      </>
     );
   }
+
+  const renderBody = () => {
+    if (activeTab === 'meetings') {
+      return (
+        <MeetingsPanel
+          meetings={myMeetings}
+          loading={meetingsLoading}
+          currentMeetingId={meetingId}
+          onOpen={openMeeting}
+          onDelete={handleDeleteMeeting}
+          onLeave={handleLeaveMeeting}
+          onCreate={() => setIsCreateModalOpen(true)}
+        />
+      );
+    }
+
+    if (loading && !details) {
+      return <p className="side-card-desc">Wczytywanie spotkania mit.mi...</p>;
+    }
+
+    if (error || !details) {
+      return (
+        <section className="grid-section-card" style={{ alignItems: 'flex-start' }}>
+          <h3 className="side-card-title">Nie znaleziono spotkania</h3>
+          <p className="side-card-desc">
+            {error || 'Nie wybrano spotkania. Otwórz jedno z listy lub utwórz nowe.'}
+          </p>
+          <button type="button" className="action-btn-primary" onClick={() => setActiveTab('meetings')}>
+            Moje spotkania
+          </button>
+        </section>
+      );
+    }
+
+    return (
+      <main className="dashboard-main">
+        <div className={`top-row ${activeTab === 'recommendations' ? 'top-row-single' : ''}`}>
+          <OverviewCard
+            participants={details.participants}
+            currentUserName={user.username}
+            onRemoveUser={handleRemoveMyAvailability}
+          />
+
+          {(activeTab === 'grid' || activeTab === 'participants') && (
+            <AvailabilityGrid
+              meeting={details.meeting}
+              participants={details.participants}
+              currentUserName={user.username}
+              mySlots={mySlots}
+              setMySlots={setMySlots}
+              onSaveMySlots={handleSaveMySlots}
+              onClearMySlots={handleClearMySlots}
+              isSaving={isSaving}
+            />
+          )}
+        </div>
+
+        <StatCards
+          participants={details.participants}
+          bestSlot={bestSlot}
+        />
+
+        {(activeTab === 'grid' || activeTab === 'recommendations') && (
+          <BestSlotsCard
+            participants={details.participants}
+            bestSlot={bestSlot}
+          />
+        )}
+      </main>
+    );
+  };
 
   return (
     <div style={{ minHeight: '100vh' }}>
       <Header
-        meeting={details.meeting}
-        currentUserName={currentUserName}
-        currentUserAvatar={currentUserAvatar}
+        meeting={details?.meeting ?? null}
+        currentUserName={user.username}
+        currentUserAvatar={user.avatar}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
         onOpenUserModal={() => setIsUserModalOpen(true)}
         onShareLink={handleShareLink}
-        dbStatus={dbStatus}
       >
-        <main className="dashboard-main">
-          <div className={`top-row ${activeTab === 'recommendations' ? 'top-row-single' : ''}`}>
-            <OverviewCard
-              participants={details.participants}
-              currentUserName={currentUserName}
-              onSelectUser={(name) => {
-                setCurrentUserName(name);
-                showToast(`Przełączono profil na: ${name}`);
-              }}
-              onRemoveUser={handleRemoveUser}
-              onOpenUserModal={() => setIsUserModalOpen(true)}
-            />
-
-            {(activeTab === 'grid' || activeTab === 'participants') && (
-              <AvailabilityGrid
-                meeting={details.meeting}
-                participants={details.participants}
-                currentUserName={currentUserName}
-                mySlots={mySlots}
-                setMySlots={setMySlots}
-                onSaveMySlots={handleSaveMySlots}
-                onClearMySlots={handleClearMySlots}
-                isSaving={isSaving}
-              />
-            )}
-          </div>
-
-          <StatCards
-            participants={details.participants}
-            bestSlot={bestSlot}
-          />
-
-          {(activeTab === 'grid' || activeTab === 'recommendations') && (
-            <BestSlotsCard
-              participants={details.participants}
-              bestSlot={bestSlot}
-            />
-          )}
-        </main>
+        {renderBody()}
       </Header>
 
       <CreateMeetingModal
@@ -308,16 +415,18 @@ export const App: React.FC = () => {
       />
 
       <UserProfileModal
+        key={`${user.id}-${user.avatar}`}
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
-        currentName={currentUserName}
-        currentAvatar={currentUserAvatar}
+        currentName={user.username}
+        currentAvatar={user.avatar}
         onSaveProfile={handleSaveProfile}
+        onLogout={logout}
       />
 
       {toastMessage && (
         <div className="toast-notification">
-          <Check size={16} color="#10b981" />
+          <Check size={16} color="#2f9e57" />
           <span>{toastMessage}</span>
         </div>
       )}

@@ -1,21 +1,18 @@
 import React from 'react';
-import { Check, Clock, Trash2, UserPlus, Sparkles } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { UserAvailability } from '../types.js';
+import { UserIcon } from './UserIcon.js';
 
 interface OverviewCardProps {
   participants: UserAvailability[];
   currentUserName: string;
-  onSelectUser: (name: string) => void;
   onRemoveUser: (name: string) => void;
-  onOpenUserModal: () => void;
 }
 
 export const OverviewCard: React.FC<OverviewCardProps> = ({
   participants,
   currentUserName,
-  onSelectUser,
-  onRemoveUser,
-  onOpenUserModal
+  onRemoveUser
 }) => {
   const targetCount = Math.max(5, participants.length);
   const percentage = Math.round((participants.length / targetCount) * 100);
@@ -47,14 +44,9 @@ export const OverviewCard: React.FC<OverviewCardProps> = ({
               <div className="checklist-icon-done">
                 <Check size={12} strokeWidth={3} />
               </div>
-              <div
-                className="checklist-meta"
-                style={{ cursor: 'pointer' }}
-                onClick={() => onSelectUser(p.userName)}
-                title="przelacz sie na tego uzytkownika"
-              >
+              <div className="checklist-meta">
                 <div className="checklist-name">
-                  <span>{p.userAvatar || '👤'}</span>
+                  <UserIcon name={p.userAvatar} size={14} />
                   <span>{p.userName}</span>
                   {isCurrent && (
                     <span style={{ fontSize: '0.7rem', color: '#2f9e57', fontWeight: 600 }}>
@@ -66,40 +58,31 @@ export const OverviewCard: React.FC<OverviewCardProps> = ({
                   {p.slots.length} zadeklarowanych slotów
                 </span>
               </div>
-              <div className="participant-actions">
-                <button
-                  type="button"
-                  className="btn-icon-tiny"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (window.confirm(`usunac dostepnosc dla: ${p.userName}?`)) {
-                      onRemoveUser(p.userName);
-                    }
-                  }}
-                  title="usun zgloszenie"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
+              {isCurrent && (
+                <div className="participant-actions">
+                  <button
+                    type="button"
+                    className="btn-icon-tiny"
+                    onClick={() => {
+                      if (window.confirm('usunac Twoja dostepnosc w tym spotkaniu?')) {
+                        onRemoveUser(p.userName);
+                      }
+                    }}
+                    title="usun swoje zgloszenie"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
 
-        <div
-          className="checklist-item"
-          style={{ borderStyle: 'dashed', cursor: 'pointer' }}
-          onClick={onOpenUserModal}
-        >
-          <div className="checklist-icon-empty">
-            <UserPlus size={11} color="#64748b" />
-          </div>
-          <div className="checklist-meta">
-            <span className="checklist-name" style={{ color: '#475569' }}>
-              Dołącz lub zmień imię
-            </span>
-            <span className="checklist-slots-count">Wpisz swój nick i zaznacz godziny</span>
-          </div>
-        </div>
+        {participants.length === 0 && (
+          <span className="checklist-slots-count" style={{ padding: '8px' }}>
+            Nikt jeszcze nie zapisał dostępności.
+          </span>
+        )}
       </div>
     </aside>
   );

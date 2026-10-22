@@ -1,11 +1,11 @@
 import React from 'react';
-import { Calendar, Plus, Share2, Sparkles, Database, LayoutGrid, Star, Users } from 'lucide-react';
-import { Meeting } from '../types.js';
+import { Calendar, Plus, Share2, LayoutGrid, Star, Users, FolderOpen } from 'lucide-react';
+import { Meeting, Tab } from '../types.js';
+import { UserIcon } from './UserIcon.js';
 
-type Tab = 'grid' | 'recommendations' | 'participants';
 
 interface HeaderProps {
-  meeting: Meeting;
+  meeting: Meeting | null;
   currentUserName: string;
   currentUserAvatar: string;
   activeTab: Tab;
@@ -13,14 +13,14 @@ interface HeaderProps {
   onOpenCreateModal: () => void;
   onOpenUserModal: () => void;
   onShareLink: () => void;
-  dbStatus: string;
   children?: React.ReactNode;
 }
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'grid', label: 'Siatka spotkania', icon: <LayoutGrid size={16} /> },
   { id: 'recommendations', label: 'Rekomendacje', icon: <Star size={16} /> },
-  { id: 'participants', label: 'Uczestnicy', icon: <Users size={16} /> }
+  { id: 'participants', label: 'Uczestnicy', icon: <Users size={16} /> },
+  { id: 'meetings', label: 'Moje spotkania', icon: <FolderOpen size={16} /> }
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,7 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCreateModal,
   onOpenUserModal,
   onShareLink,
-  dbStatus,
   children
 }) => {
   return (
@@ -67,7 +66,9 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="welcome-hero">
             <h1>Welcome Back, {currentUserName}</h1>
             <p>
-              {meeting.title} — {meeting.description || 'Wybierz godziny i znajdź wspólny termin z zespołem.'}
+              {meeting
+                ? `${meeting.title} — ${meeting.description || 'Wybierz godziny i znajdź wspólny termin z zespołem.'}`
+                : 'Wybierz spotkanie z listy lub utwórz nowe.'}
             </p>
           </div>
 
@@ -85,9 +86,9 @@ export const Header: React.FC<HeaderProps> = ({
             <div
               className="user-profile-pill"
               onClick={onOpenUserModal}
-              title="zmien swoj profil lub imie"
+              title="konto i ikona profilu"
             >
-              <div className="user-avatar-circle">{currentUserAvatar}</div>
+              <div className="user-avatar-circle"><UserIcon name={currentUserAvatar} size={15} /></div>
               <span>{currentUserName}</span>
             </div>
           </div>

@@ -1,32 +1,31 @@
 import React, { useState } from 'react';
-import { X, User } from 'lucide-react';
+import { X, User, LogOut } from 'lucide-react';
+import { IconPicker } from './UserIcon.js';
 
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentName: string;
   currentAvatar: string;
-  onSaveProfile: (name: string, avatar: string) => void;
+  onSaveProfile: (avatar: string) => void;
+  onLogout: () => void;
 }
-
-const AVATAR_OPTIONS = ['👑', '⚡', '🚀', '🎨', '💻', '🧠', '🎯', '🌟', '🦄', '🔥'];
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
   onClose,
   currentName,
   currentAvatar,
-  onSaveProfile
+  onSaveProfile,
+  onLogout
 }) => {
-  const [name, setName] = useState(currentName);
-  const [avatar, setAvatar] = useState(currentAvatar || '👑');
+  const [avatar, setAvatar] = useState(currentAvatar || 'Crown');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onSaveProfile(name.trim(), avatar);
+    onSaveProfile(avatar);
     onClose();
   };
 
@@ -35,8 +34,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       <div className="modal-card" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <User size={18} color="#10b981" />
-            <h3 className="modal-title">Twój profil w mit.mi</h3>
+            <User size={18} color="#2f9e57" />
+            <h3 className="modal-title">Konto: {currentName}</h3>
           </div>
           <button
             type="button"
@@ -49,47 +48,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="form-group">
-            <label className="form-label">Twoje imię lub nick</label>
-            <input
-              type="text"
-              className="form-input"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="np. Tymek, Aisha, Ola..."
-              required
-            />
+            <label className="form-label">Ikona profilu</label>
+            <IconPicker value={avatar} onChange={setAvatar} />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Wybierz swój awatar</label>
-            <div className="avatar-picker-row">
-              {AVATAR_OPTIONS.map(emoji => (
-                <button
-                  key={emoji}
-                  type="button"
-                  className={`avatar-choice-btn ${avatar === emoji ? 'selected' : ''}`}
-                  onClick={() => setAvatar(emoji)}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px' }}>
             <button
               type="button"
               className="action-btn-secondary"
-              onClick={onClose}
+              onClick={() => {
+                onClose();
+                onLogout();
+              }}
             >
-              Anuluj
+              <LogOut size={14} />
+              Wyloguj
             </button>
-            <button
-              type="submit"
-              className="action-btn-primary"
-            >
-              Zapisz profil
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="action-btn-secondary"
+                onClick={onClose}
+              >
+                Anuluj
+              </button>
+              <button
+                type="submit"
+                className="action-btn-primary"
+              >
+                Zapisz
+              </button>
+            </div>
           </div>
         </form>
       </div>
