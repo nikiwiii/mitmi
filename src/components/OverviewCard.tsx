@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Check, Trash2, Users } from 'lucide-react';
 import { UserAvailability } from '../types.js';
 import { UserIcon } from './UserIcon.js';
 
@@ -14,23 +14,47 @@ export const OverviewCard: React.FC<OverviewCardProps> = ({
   currentUserName,
   onRemoveUser
 }) => {
-  const targetCount = Math.max(5, participants.length);
-  const percentage = Math.round((participants.length / targetCount) * 100);
+  const totalParticipants = participants.length;
+  const isCurrentSubmitted = participants.some(
+    p => p.userName.toLowerCase() === currentUserName.toLowerCase()
+  );
+
+  const getParticipantsLabel = (n: number) => {
+    if (n === 1) return 'uczestnik';
+    const last = n % 10;
+    const lastTwo = n % 100;
+    if (last >= 2 && last <= 4 && (lastTwo < 10 || lastTwo >= 20)) {
+      return 'uczestników';
+    }
+    return 'uczestników';
+  };
 
   return (
     <aside className="side-card">
       <div>
         <h3 className="side-card-title">Status zespołu</h3>
         <p className="side-card-desc">
-          Monitorowanie zadeklarowanej dostępności członków projektu koła BIT Web.
+          Zadeklarowana dostępność uczestników tego spotkania.
         </p>
       </div>
 
-      <div className="progress-header" title="Postęp odpowiedzi">
-        <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${percentage}%` }} />
+      <div className="overview-stats-banner">
+        <div className="overview-stat-pill">
+          <Users size={15} className="overview-stat-icon" />
+          <span className="overview-stat-val">{totalParticipants}</span>
+          <span className="overview-stat-lbl">{getParticipantsLabel(totalParticipants)}</span>
         </div>
-        <span>{percentage}%</span>
+
+        <div className={`overview-user-status-pill ${isCurrentSubmitted ? 'submitted' : 'pending'}`}>
+          {isCurrentSubmitted ? (
+            <>
+              <Check size={12} strokeWidth={3} />
+              <span>Twój głos oddany</span>
+            </>
+          ) : (
+            <span>Oczekiwanie na Twój głos</span>
+          )}
+        </div>
       </div>
 
       <div className="checklist-group">

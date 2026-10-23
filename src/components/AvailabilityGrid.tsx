@@ -136,9 +136,11 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
 
   const totalParticipants = participants.length;
 
-  const handleCellMouseDown = (slotKey: string) => {
+  const handleCellMouseDown = (slotKey: string, e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Tylko lewy przycisk myszy
     if (isMobile) return;
     if (viewMode !== 'edit') return;
+    e.preventDefault();
     setIsDragging(true);
     const alreadySelected = mySlots.includes(slotKey);
     const shouldSelect = !alreadySelected;
@@ -190,6 +192,10 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
 
   const handleCellClick = (slotKey: string, date: string, time: string, e: React.MouseEvent) => {
     if (viewMode === 'edit') {
+      // Na desktopie zaznaczanie i przeciąganie obsługuje onMouseDown i onMouseEnter
+      // Zapobiegamy ponownemu (podwójnemu) przełączeniu stanu przez zdarzenie click
+      if (!isMobile) return;
+
       const alreadySelected = mySlots.includes(slotKey);
       const shouldSelect = !alreadySelected;
       setMySlots(prev =>
@@ -595,7 +601,7 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                     key={slotKey}
                     data-slot-key={slotKey}
                     className={cellClass}
-                    onMouseDown={() => handleCellMouseDown(slotKey)}
+                    onMouseDown={(e) => handleCellMouseDown(slotKey, e)}
                     onMouseEnter={(e) => handleMouseEnterCell(slotKey, date, time, e)}
                     onClick={(e) => handleCellClick(slotKey, date, time, e)}
                   >
@@ -605,7 +611,6 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                           {isMineSelected ? (
                             <>
                               <Check size={14} strokeWidth={3} />
-                              <span className="mobile-slot-label-active">Dostępny ({time})</span>
                             </>
                           ) : (
                             <span className="mobile-slot-placeholder">Dotknij, aby zaznaczyć</span>
