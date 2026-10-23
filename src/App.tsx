@@ -405,6 +405,7 @@ export const App: React.FC = () => {
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
         onOpenUserModal={() => setIsUserModalOpen(true)}
         onShareLink={handleShareLink}
+        showButtons={activeTab !== 'meetings'}
       >
         {renderBody()}
       </Header>

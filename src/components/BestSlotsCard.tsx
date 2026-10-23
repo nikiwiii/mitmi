@@ -172,54 +172,53 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
       <div className="breakdown-bar-container">
         <div className="breakdown-strip">
           {/* Pełny skład */}
-          <div
-            className={`seg-col seg-reserved ${selectedFilter === 'full' ? 'active-filter' : ''}`}
-            style={{ flex: Math.max(1, fullPct) }}
-            onClick={() => setSelectedFilter(prev => prev === 'full' ? 'all' : 'full')}
-            title={`Pełny skład: ${fullSlots.length} z ${totalSlots} slotów (${fullPct}%)`}
-          >
-            <div className="seg-label">
-              <span style={{ fontWeight: 700, color: '#16a34a' }}>{fullPct}%</span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '6px' }}>({fullSlots.length} slotów)</span>
+          {fullSlots.length > 0 && (
+            <div
+              className={`seg-col seg-reserved ${selectedFilter === 'full' ? 'active-filter' : ''}`}
+              style={{ flex: Math.max(2, fullPct), minWidth: '14px' }}
+              onClick={() => setSelectedFilter(prev => prev === 'full' ? 'all' : 'full')}
+              title={`Pełny skład: ${fullSlots.length} z ${totalSlots} slotów (${fullPct}%)`}
+            >
+              <div className="seg-label">
+                <span style={{ fontWeight: 700, color: '#16a34a' }}>{fullPct}%</span>
+              </div>
+              <div className="strip-segment-reserved" style={{ width: '100%' }} />
             </div>
-            <div className="strip-segment-reserved">
-              {Array.from({ length: Math.min(12, Math.max(1, fullSlots.length)) }).map((_, i) => (
-                <div key={i} className="strip-block-green" />
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Częściowa obecność */}
-          <div
-            className={`seg-col seg-used ${selectedFilter === 'partial' ? 'active-filter' : ''}`}
-            style={{ flex: Math.max(1, partialPct) }}
-            onClick={() => setSelectedFilter(prev => prev === 'partial' ? 'all' : 'partial')}
-            title={`Częściowa obecność: ${partialSlots.length} z ${totalSlots} slotów (${partialPct}%)`}
-          >
-            <div className="seg-label">
-              <span style={{ fontWeight: 700, color: '#ea580c' }}>{partialPct}%</span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '6px' }}>({partialSlots.length} slotów)</span>
+          {partialSlots.length > 0 && (
+            <div
+              className={`seg-col seg-used ${selectedFilter === 'partial' ? 'active-filter' : ''}`}
+              style={{ flex: Math.max(2, partialPct), minWidth: '14px' }}
+              onClick={() => setSelectedFilter(prev => prev === 'partial' ? 'all' : 'partial')}
+              title={`Częściowa obecność: ${partialSlots.length} z ${totalSlots} slotów (${partialPct}%)`}
+            >
+              <div className="seg-label">
+                <span style={{ fontWeight: 700, color: '#ea580c' }}>{partialPct}%</span>
+              </div>
+              <div className="strip-segment-used" style={{ width: '100%' }} />
             </div>
-            <div className="strip-segment-used" style={{ width: '100%' }} />
-          </div>
+          )}
 
           {/* Puste / niezagospodarowane */}
-          <div
-            className={`seg-col seg-unused ${selectedFilter === 'empty' ? 'active-filter' : ''}`}
-            style={{ flex: Math.max(1, emptyPct) }}
-            onClick={() => setSelectedFilter(prev => prev === 'empty' ? 'all' : 'empty')}
-            title={`Brak dostępności: ${emptySlots.length} z ${totalSlots} slotów (${emptyPct}%)`}
-          >
-            <div className="seg-label">
-              <span style={{ fontWeight: 700, color: '#0284c7' }}>{emptyPct}%</span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '6px' }}>({emptySlots.length} slotów)</span>
+          {emptySlots.length > 0 && (
+            <div
+              className={`seg-col seg-unused ${selectedFilter === 'empty' ? 'active-filter' : ''}`}
+              style={{ flex: Math.max(2, emptyPct), minWidth: '14px' }}
+              onClick={() => setSelectedFilter(prev => prev === 'empty' ? 'all' : 'empty')}
+              title={`Brak dostępności: ${emptySlots.length} z ${totalSlots} slotów (${emptyPct}%)`}
+            >
+              <div className="seg-label">
+                <span style={{ fontWeight: 700, color: '#0284c7' }}>{emptyPct}%</span>
+              </div>
+              <div className="strip-segment-unused">
+                {Array.from({ length: Math.min(24, Math.max(2, Math.round(emptyPct / 4))) }).map((_, i) => (
+                  <div key={i} className="strip-dot" />
+                ))}
+              </div>
             </div>
-            <div className="strip-segment-unused">
-              {Array.from({ length: Math.min(24, Math.max(2, Math.round(emptyPct / 4))) }).map((_, i) => (
-                <div key={i} className="strip-dot" />
-              ))}
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="breakdown-legend">
@@ -228,7 +227,7 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
             style={{ cursor: 'pointer' }}
             onClick={() => setSelectedFilter(prev => prev === 'full' ? 'all' : 'full')}
           >
-            <div className="legend-item-dot" style={{ background: '#2f9e45' }} />
+            <div className="legend-item-dot" style={{ background: '#16a34a' }} />
             <span>Pełny skład ({fullSlots.length})</span>
           </div>
           <div
@@ -236,7 +235,7 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
             style={{ cursor: 'pointer' }}
             onClick={() => setSelectedFilter(prev => prev === 'partial' ? 'all' : 'partial')}
           >
-            <div className="legend-item-dot" style={{ background: '#f07a12' }} />
+            <div className="legend-item-dot" style={{ background: '#ea580c' }} />
             <span>Częściowa obecność ({partialSlots.length})</span>
           </div>
           <div
@@ -244,7 +243,7 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
             style={{ cursor: 'pointer' }}
             onClick={() => setSelectedFilter(prev => prev === 'empty' ? 'all' : 'empty')}
           >
-            <div className="legend-item-dot" style={{ background: '#3fb0e6' }} />
+            <div className="legend-item-dot" style={{ background: '#0284c7' }} />
             <span>Puste sloty ({emptySlots.length})</span>
           </div>
         </div>

@@ -28,10 +28,6 @@ export const MeetingsPanel: React.FC<MeetingsPanelProps> = ({
           <h3 className="side-card-title">Moje spotkania</h3>
           <p className="side-card-desc">Wszystkie spotkania, w których bierzesz udział.</p>
         </div>
-        <button type="button" className="btn-pill-small" onClick={onCreate}>
-          <CalendarDays size={12} />
-          Nowe spotkanie
-        </button>
       </div>
 
       {loading && meetings.length === 0 ? (

@@ -865,6 +865,539 @@ body {
   text-decoration: line-through;
 }
 
+/* ============================================================
+   pozioma lista dni dla urzadzen mobilnych (eliminacja overflow)
+   ============================================================ */
+.mobile-day-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mobile-day-selector-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.mobile-day-selector-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mobile-day-selector-icon {
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.mobile-day-selector-counter {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+
+.mobile-day-nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.mobile-nav-arrow-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.mobile-nav-arrow-btn:hover:not(:disabled) {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.mobile-nav-arrow-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Wrapper zabezpieczajacy przed rozpychaniem w flexboxie */
+.mobile-day-pills-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.mobile-day-pills-wrapper::before,
+.mobile-day-pills-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 8px;
+  width: 16px;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.2s ease;
+}
+
+/* Scrollowalna lista pigułek - NIE WYSWIETLA WSZYSTKICH DNI NA RAZ */
+.mobile-day-pills-list {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding: 4px 6px 10px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.25) transparent;
+}
+
+.mobile-day-pills-list::-webkit-scrollbar {
+  height: 5px;
+}
+
+.mobile-day-pills-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+
+.mobile-day-pills-list::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.25);
+  border-radius: 4px;
+}
+
+/* Pojedyncza pigulka ma stałą szerokosc, aby zmiescily sie tylko ~3 dni na raz */
+.mobile-day-pill {
+  flex: 0 0 88px !important;
+  width: 88px !important;
+  min-width: 88px !important;
+  max-width: 88px !important;
+  padding: 9px 6px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(226, 232, 240, 0.85);
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  font-family: inherit;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.mobile-day-pill:hover {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+.mobile-day-pill.active {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+  transform: translateY(-1px);
+}
+
+.mobile-day-pill-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.mobile-day-pill.active .mobile-day-pill-name {
+  color: #94a3b8;
+}
+
+.mobile-day-pill-date {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.mobile-day-pill.active .mobile-day-pill-date {
+  color: #ffffff;
+}
+
+.mobile-day-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  margin-top: 3px;
+}
+
+.mobile-day-pill-badge.has-slots {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.mobile-day-pill.active .mobile-day-pill-badge.has-slots {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.mobile-day-pill-badge.heatmap-active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.mobile-day-pill.active .mobile-day-pill-badge.heatmap-active {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.mobile-day-pill-badge.no-slots {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-muted);
+}
+
+.mobile-day-pill.active .mobile-day-pill-badge.no-slots {
+  background: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+.mobile-day-quick-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(226, 232, 240, 0.9);
+}
+
+.mobile-day-quick-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.mobile-day-quick-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobile-quick-btn {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.mobile-quick-btn:hover {
+  background: #f8fafc;
+  color: var(--text-primary);
+}
+
+.mobile-quick-btn.danger {
+  color: #b4232a;
+}
+
+.mobile-quick-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* mobile komorki w siatce */
+.grid-section-card.is-mobile-view .grid-slot-cell {
+  height: 34px;
+  touch-action: manipulation;
+}
+
+.mobile-slot-edit-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0 8px;
+}
+
+.mobile-slot-label-active {
+  font-size: 0.78rem;
+  letter-spacing: -0.01em;
+}
+
+.mobile-slot-placeholder {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.mobile-slot-heatmap-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+.mobile-heatmap-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-heatmap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 0.76rem;
+}
+
+.mobile-heatmap-status {
+  font-size: 0.74rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.mobile-heatmap-pct {
+  font-size: 0.74rem;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+/* mobile tooltip arkusz */
+.tooltip-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tooltip-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tooltip-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.slot-hover-tooltip.mobile-tooltip {
+  position: fixed !important;
+  left: 16px !important;
+  right: 16px !important;
+  bottom: 20px !important;
+  top: auto !important;
+  transform: none !important;
+  max-width: 440px !important;
+  width: auto !important;
+  margin: 0 auto !important;
+  pointer-events: auto !important;
+  padding: 14px 18px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+  z-index: 999999 !important;
+  animation: mobileSheetSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.slot-hover-tooltip.mobile-tooltip::after {
+  display: none !important;
+}
+
+@keyframes mobileSheetSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* style responsywne dla widoku siatki dostepnosci i calej aplikacji */
+@media (max-width: 768px) {
+  body {
+    padding: 12px 8px 32px;
+    overflow-x: hidden;
+  }
+
+  .dashboard-container {
+    padding: 16px 10px 20px;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .dashboard-main {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .top-row,
+  .top-row-single {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .grid-section-card {
+    padding: 14px 10px;
+    gap: 14px;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .grid-section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .grid-mode-selector {
+    width: 100%;
+    display: flex;
+  }
+
+  .mode-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 8px;
+    font-size: 0.78rem;
+  }
+
+  .grid-toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .grid-toolbar-actions .save-btn {
+    grid-column: span 2;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    justify-content: center;
+  }
+
+  .grid-toolbar-actions .btn-pill-small:not(.save-btn) {
+    justify-content: center;
+    padding: 7px 8px;
+    font-size: 0.76rem;
+  }
+
+  .heatmap-legend {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+  }
+
+  .grid-scroll-wrapper {
+    overflow-x: hidden;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .availability-grid-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .grid-header-row,
+  .grid-time-row {
+    grid-template-columns: 60px 1fr !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .time-row-label {
+    font-size: 0.72rem;
+    padding-right: 6px;
+    text-align: center;
+  }
+
+  .grid-day-header.mobile-day-selected-header {
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+  }
+
+  /* ukrycie górnych opisów (procentów i liczby slotów) na wykresie podziału na urządzeniach mobilnych */
+  .seg-label {
+    display: none !important;
+  }
+}
+
 /* dolna karta rekomendacji terminow w stylu 30-day cost forecast */
 .forecast-card {
   background: var(--glass-card-bg);
@@ -927,6 +1460,15 @@ body {
   margin-top: 4px;
 }
 
+.seg-label {
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .breakdown-labels-row {
   display: flex;
   align-items: center;
@@ -964,22 +1506,17 @@ body {
 }
 
 .strip-segment-reserved {
-  display: flex;
-  gap: 4px;
-  flex: 1.2;
-}
-
-.strip-block-green {
-  flex: 1;
   height: 18px;
   background: #16a34a;
-  border-radius: 3px;
+  border-radius: 4px;
+  width: 100%;
 }
 
 .breakdown-legend {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   font-size: 0.76rem;
   font-weight: 600;
   color: var(--text-muted);

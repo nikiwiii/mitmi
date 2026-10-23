@@ -13,11 +13,12 @@ interface HeaderProps {
   onOpenCreateModal: () => void;
   onOpenUserModal: () => void;
   onShareLink: () => void;
+  showButtons: boolean;
   children?: React.ReactNode;
 }
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'grid', label: 'Siatka spotkania', icon: <LayoutGrid size={16} /> },
+  { id: 'grid', label: 'Spotkanie', icon: <LayoutGrid size={16} /> },
   { id: 'recommendations', label: 'Rekomendacje', icon: <Star size={16} /> },
   { id: 'participants', label: 'Uczestnicy', icon: <Users size={16} /> },
   { id: 'meetings', label: 'Moje spotkania', icon: <FolderOpen size={16} /> }
@@ -32,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCreateModal,
   onOpenUserModal,
   onShareLink,
+  showButtons,
   children
 }) => {
   return (
@@ -63,14 +65,14 @@ export const Header: React.FC<HeaderProps> = ({
         </header>
 
         <section className="welcome-row">
-          <div className="welcome-hero">
+          {showButtons && <div className="welcome-hero">
             <h1>{meeting ? meeting.title : 'Wybierz spotkanie'}</h1>
             <p>
               {meeting
                 ? (meeting.description || 'Wybierz godziny i znajdź wspólny termin z zespołem.')
                 : 'Wybierz spotkanie z listy lub utwórz nowe.'}
             </p>
-          </div>
+          </div>}
 
           <div className="header-actions">
             <button type="button" className="action-btn-primary" onClick={onOpenCreateModal}>
@@ -78,10 +80,10 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Nowe spotkanie</span>
             </button>
 
-            <button type="button" className="action-btn-secondary" onClick={onShareLink}>
+            {showButtons && <button type="button" className="action-btn-secondary" onClick={onShareLink}>
               <Share2 size={14} />
-              <span>Udostępnij</span>
-            </button>
+              <span>Kopiuj link</span>
+            </button>}
 
             <div
               className="user-profile-pill"
