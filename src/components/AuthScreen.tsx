@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Calendar, LogIn, UserPlus, Lock, User as UserIcon2 } from 'lucide-react';
+import { LogIn, UserPlus, Lock, User as UserIcon2 } from 'lucide-react';
 import { loginAccount, registerAccount } from '../api.js';
 import { User } from '../types.js';
 import { IconPicker } from './UserIcon.js';
+import { MitmiLogo } from './MitmiLogo.js';
 
 interface AuthScreenProps {
   onAuthenticated: (token: string, user: User) => void;
@@ -43,10 +44,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
     <div className="auth-shell">
       <div className="dashboard-container auth-frame">
         <div className="brand-section">
-          <div className="brand-logo-icon">
-            <Calendar size={20} />
-          </div>
-          <div className="brand-title">mit.mi</div>
+          <MitmiLogo size={38} />
+          <div className="brand-title">mit<span>.</span>mi</div>
         </div>
 
         <div className="welcome-hero">

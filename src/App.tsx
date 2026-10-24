@@ -8,6 +8,7 @@ import { CreateMeetingModal } from './components/CreateMeetingModal.js';
 import { UserProfileModal } from './components/UserProfileModal.js';
 import { AuthScreen } from './components/AuthScreen.js';
 import { MeetingsPanel } from './components/MeetingsPanel.js';
+import { MitmiLogo } from './components/MitmiLogo.js';
 import { MeetingDetails, MeetingSummary, Tab, User } from './types.js';
 import {
   fetchMeeting,
@@ -302,8 +303,9 @@ export const App: React.FC = () => {
 
   if (!authChecked) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', color: '#475569' }}>
-        <span>Wczytywanie mit.mi...</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', alignItems: 'center', minHeight: '80vh', color: '#475569' }}>
+        <MitmiLogo size={48} />
+        <span style={{ fontWeight: 600, fontSize: '1rem', letterSpacing: '-0.01em' }}>Wczytywanie mit.mi...</span>
       </div>
     );
   }
@@ -357,14 +359,14 @@ export const App: React.FC = () => {
 
     return (
       <main className="dashboard-main">
-        <div className={`top-row ${activeTab === 'recommendations' ? 'top-row-single' : ''}`}>
-          <OverviewCard
-            participants={details.participants}
-            currentUserName={user.username}
-            onRemoveUser={handleRemoveMyAvailability}
-          />
+        {activeTab === 'grid' && (
+          <div className="top-row">
+            <OverviewCard
+              participants={details.participants}
+              currentUserName={user.username}
+              onRemoveUser={handleRemoveMyAvailability}
+            />
 
-          {(activeTab === 'grid' || activeTab === 'participants') && (
             <AvailabilityGrid
               meeting={details.meeting}
               participants={details.participants}
@@ -375,21 +377,21 @@ export const App: React.FC = () => {
               onClearMySlots={handleClearMySlots}
               isSaving={isSaving}
             />
-          )}
-        </div>
+          </div>
+        )}
 
         <StatCards
+          meeting={details.meeting}
+          participants={details.participants}
+          bestSlot={bestSlot}
+          currentUserName={user?.username}
+        />
+
+        <BestSlotsCard
+          meeting={details.meeting}
           participants={details.participants}
           bestSlot={bestSlot}
         />
-
-        {(activeTab === 'grid' || activeTab === 'recommendations') && (
-          <BestSlotsCard
-            meeting={details.meeting}
-            participants={details.participants}
-            bestSlot={bestSlot}
-          />
-        )}
       </main>
     );
   };

@@ -21,7 +21,7 @@ export interface User {
   createdAt: string;
 }
 
-export type Tab = 'grid' | 'recommendations' | 'participants' | 'meetings';
+export type Tab = 'grid' | 'recommendations' | 'meetings';
 
 export interface UserAvailability {
   userName: string;

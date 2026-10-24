@@ -165,7 +165,7 @@ export async function initDb(): Promise<boolean> {
     return true;
   } catch (err) {
     isPgReady = false;
-    console.log('[mit.mi] brak aktywnego postgresql, dzialam w trybie pamieci');
+    console.log('[mit.mi] brak aktywnego postgresql, dziala w trybie pamieci');
     return false;
   }
 }

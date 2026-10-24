@@ -126,12 +126,13 @@ body {
 
 .brand-title {
   font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: -0.015em;
   color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  line-height: 1;
 }
 
 .brand-title span {
@@ -524,15 +525,18 @@ body {
   flex: 1;
   background: #cbd5e1;
   border-radius: 2px;
-  transition: height 0.3s ease;
+  height: 28%;
+  transition: height 0.3s ease, background 0.2s ease;
 }
 
 .eq-bar.active {
   background: #10b981;
+  height: 100%;
 }
 
 .eq-bar.highlight {
   background: #f87171;
+  height: 60%;
 }
 
 /* sekcja siatki terminow */
@@ -1901,8 +1905,6 @@ body::before {
   position: fixed;
   inset: -40px;
   z-index: -1;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.7) 0 70px, rgba(170, 215, 235, 0.28) 70px 150px, rgba(255, 255, 255, 0.5) 150px 210px);
   filter: blur(42px);
   opacity: 0.9;
 }
@@ -1949,25 +1951,24 @@ body {
 }
 
 .brand-section {
-  gap: 8px;
-}
-
-.brand-logo-icon {
-  width: auto;
-  height: auto;
-  background: transparent;
-  box-shadow: none;
-  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
 
 .brand-title {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  line-height: 1;
 }
 
 .brand-title span {
-  color: var(--text-primary);
+  color: var(--accent-green);
 }
 
 .header-center-nav {

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, Plus, Share2, LayoutGrid, Star, Users, FolderOpen } from 'lucide-react';
+import { Plus, Share2, LayoutGrid, Star, FolderOpen } from 'lucide-react';
 import { Meeting, Tab } from '../types.js';
 import { UserIcon } from './UserIcon.js';
-
+import { MitmiLogo } from './MitmiLogo.js';
 
 interface HeaderProps {
   meeting: Meeting | null;
@@ -20,7 +20,6 @@ interface HeaderProps {
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'grid', label: 'Spotkanie', icon: <LayoutGrid size={16} /> },
   { id: 'recommendations', label: 'Rekomendacje', icon: <Star size={16} /> },
-  { id: 'participants', label: 'Uczestnicy', icon: <Users size={16} /> },
   { id: 'meetings', label: 'Moje spotkania', icon: <FolderOpen size={16} /> }
 ];
 
@@ -38,14 +37,11 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <>
-
       <div className="dashboard-container">
         <header className="dashboard-header">
           <div className="brand-section">
-            <div className="brand-logo-icon">
-              <Calendar size={20} />
-            </div>
-            <div className="brand-title">mit.mi</div>
+            <MitmiLogo size={36} />
+            <div className="brand-title">mit<span>.</span>mi</div>
           </div>
 
           <nav className="header-center-nav">
@@ -62,6 +58,15 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             ))}
           </nav>
+
+          <div
+            className="user-profile-pill"
+            onClick={onOpenUserModal}
+            title="konto i ikona profilu"
+          >
+            <div className="user-avatar-circle"><UserIcon name={currentUserAvatar} size={15} /></div>
+            <span>{currentUserName}</span>
+          </div>
         </header>
 
         <section className="welcome-row">
@@ -84,15 +89,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Share2 size={14} />
               <span>Kopiuj link</span>
             </button>}
-
-            <div
-              className="user-profile-pill"
-              onClick={onOpenUserModal}
-              title="konto i ikona profilu"
-            >
-              <div className="user-avatar-circle"><UserIcon name={currentUserAvatar} size={15} /></div>
-              <span>{currentUserName}</span>
-            </div>
           </div>
         </section>
 
