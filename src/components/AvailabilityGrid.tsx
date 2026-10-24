@@ -141,6 +141,7 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
     if (isMobile) return;
     if (viewMode !== 'edit') return;
     e.preventDefault();
+    setHoverInfo(null);
     setIsDragging(true);
     const alreadySelected = mySlots.includes(slotKey);
     const shouldSelect = !alreadySelected;
@@ -157,14 +158,16 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
     if (isMobile) return;
 
     if (isDragging && viewMode === 'edit') {
+      setHoverInfo(null);
       setMySlots(prev =>
         dragSelectMode
           ? Array.from(new Set([...prev, slotKey]))
           : prev.filter(s => s !== slotKey)
       );
+      return;
     }
 
-    if (viewMode === 'heatmap') {
+    if (!isDragging) {
       const availableUsers = slotCountMap.get(slotKey) || [];
       const missingUsers = participants
         .map(p => p.userName)
@@ -589,11 +592,11 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                 const available = slotCountMap.get(slotKey) || [];
                 const isMineSelected = mySlots.includes(slotKey);
 
-                let cellClass = 'grid-slot-cell ';
-                if (viewMode === 'edit') {
-                  cellClass += isMineSelected ? 'slot-selected-mine' : 'slot-level-0';
-                } else {
-                  cellClass += getHeatmapClass(available.length, totalParticipants);
+                // Zawsze zachowujemy zielone zabarwienie frekwencji zespołu
+                const heatmapClass = getHeatmapClass(available.length, totalParticipants);
+                let cellClass = `grid-slot-cell ${heatmapClass}`;
+                if (viewMode === 'edit' && isMineSelected) {
+                  cellClass += ' slot-selected-mine';
                 }
 
                 return (
@@ -609,12 +612,8 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                       viewMode === 'edit' ? (
                         <div className="mobile-slot-edit-content">
                           {isMineSelected ? (
-                            <>
-                              <Check size={14} strokeWidth={3} />
-                            </>
-                          ) : (
-                            <span className="mobile-slot-placeholder">Dotknij, aby zaznaczyć</span>
-                          )}
+                            <Check size={14} strokeWidth={3} />
+                          ) : null}
                         </div>
                       ) : (
                         <div className="mobile-slot-heatmap-content">
@@ -640,10 +639,11 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                       )
                     ) : (
                       <>
-                        {viewMode === 'edit' && isMineSelected && (
-                          <Check size={13} strokeWidth={3} />
-                        )}
-                        {viewMode === 'heatmap' && available.length > 0 && (
+                        {viewMode === 'edit' ? (
+                          isMineSelected ? (
+                            <Check size={13} strokeWidth={3} />
+                          ) : null
+                        ) : available.length > 0 ? (
                           <span
                             style={{
                               fontSize: '0.7rem',
@@ -654,7 +654,7 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
                           >
                             {available.length}
                           </span>
-                        )}
+                        ) : null}
                       </>
                     )}
                   </div>

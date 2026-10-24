@@ -105,17 +105,53 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
   const partialPct = totalSlots > 0 ? Math.round((partialSlots.length / totalSlots) * 100) : 0;
   const emptyPct = totalSlots > 0 ? Math.max(0, 100 - fullPct - partialPct) : 100;
 
+  const getNextSlotKey = (date: string, time: string): string => {
+    const [h, m] = time.split(':').map(Number);
+    let nextM = m + 30;
+    let nextH = h;
+    if (nextM >= 60) {
+      nextM = 0;
+      nextH += 1;
+    }
+    return `${date}T${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+  };
+
+  const getBlockLength = (date: string, time: string, minCount: number): number => {
+    let len = 1;
+    let currTime = time;
+    while (true) {
+      const nextKey = getNextSlotKey(date, currTime);
+      const data = slotDataMap.get(nextKey);
+      if (data && data.count >= minCount && minCount > 0) {
+        len++;
+        currTime = nextKey.split('T')[1];
+      } else {
+        break;
+      }
+    }
+    return len;
+  };
+
   // Top 3 najlepsze unikalne terminy
   const topSlots = useMemo(() => {
     return [...allMeetingSlots]
       .filter(s => s.count > 0)
+      .map(s => ({
+        ...s,
+        blockLength: getBlockLength(s.date, s.time, s.count)
+      }))
       .sort((a, b) => {
+        // 1. Najwyższa frekwencja
         if (b.count !== a.count) return b.count - a.count;
+        // 2. Dłuższy ciągły blok spotkania (np. 4 sloty w sobotę wygrywają z 1 pojedynczym slotem)
+        if (b.blockLength !== a.blockLength) return b.blockLength - a.blockLength;
+        // 3. Wcześniejsza data
         if (a.date !== b.date) return a.date.localeCompare(b.date);
+        // 4. Wcześniejsza godzina
         return a.time.localeCompare(b.time);
       })
       .slice(0, 3);
-  }, [allMeetingSlots]);
+  }, [allMeetingSlots, slotDataMap]);
 
   // Formatowanie pełnej daty
   const formatDateFull = (dateStr: string) => {
@@ -143,19 +179,21 @@ export const BestSlotsCard: React.FC<BestSlotsCardProps> = ({
     }
   };
 
-  const count = bestSlot ? bestSlot.count : 0;
-  const percentage = total > 0 && bestSlot ? Math.round((count / total) * 100) : 0;
-  const formattedDate = bestSlot ? formatDateFull(bestSlot.date) : 'Wybierz sloty w ankiecie';
-  const timeRange = bestSlot ? `${bestSlot.time} (optymalny start)` : 'Brak danych';
+  // Zawsze spójny rekomendowany slot (zgodny z kartą #1 w rankingu oraz bestSlot)
+  const effectiveSlot = topSlots[0] || bestSlot;
+  const count = effectiveSlot ? effectiveSlot.count : 0;
+  const percentage = total > 0 && effectiveSlot ? Math.round((count / total) * 100) : 0;
+  const formattedDate = effectiveSlot ? formatDateFull(effectiveSlot.date) : 'Wybierz sloty w ankiecie';
+  const timeRange = effectiveSlot ? `${effectiveSlot.time} (optymalny start)` : 'Brak danych';
 
   // Obliczenie wskaźnika konsensusu
   const consensusText = useMemo(() => {
     if (total === 0) return 'Oczekiwanie na pierwsze deklaracje uczestników spotkania.';
-    if (!bestSlot || count === 0) return 'Nikt z uczestników nie wskazał jeszcze wspólnego terminu.';
+    if (!effectiveSlot || count === 0) return 'Nikt z uczestników nie wskazał jeszcze wspólnego terminu.';
     if (percentage === 100) return 'Pełna jednomyślność - 100% członków zespołu potwierdziło ten termin.';
     if (percentage >= 75) return `Wysoki konsensus - ${percentage}% obecności zespołu, najlepsza z możliwych opcji.`;
     return `Kompromisowy termin - ${percentage}% obecności członków zespołu.`;
-  }, [total, bestSlot, count, percentage]);
+  }, [total, effectiveSlot, count, percentage]);
 
   return (
     <div className="forecast-card">

@@ -137,7 +137,7 @@ export const App: React.FC = () => {
     setMySlots(found ? found.slots : []);
   }, [user?.username, details]);
 
-  // obliczanie najlepszego slotu o najwyzszej frekwencji
+  // obliczanie najlepszego slotu o najwyzszej frekwencji i ciaglosci czasowej
   const bestSlot = useMemo(() => {
     if (!details || details.participants.length === 0) return null;
     const map = new Map<string, number>();
@@ -147,18 +147,63 @@ export const App: React.FC = () => {
       });
     });
 
-    let maxSlot = '';
-    let maxCount = -1;
-    for (const [slot, count] of map.entries()) {
-      if (count > maxCount) {
-        maxCount = count;
-        maxSlot = slot;
-      }
-    }
+    if (map.size === 0) return null;
 
-    if (!maxSlot || maxCount <= 0) return null;
-    const [date, time] = maxSlot.split('T');
-    return { date, time, count: maxCount };
+    // Funkcja wyznaczajaca nastepny slot o 30 minut
+    const getNextSlotKey = (date: string, time: string): string => {
+      const [h, m] = time.split(':').map(Number);
+      let nextM = m + 30;
+      let nextH = h;
+      if (nextM >= 60) {
+        nextM = 0;
+        nextH += 1;
+      }
+      return `${date}T${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+    };
+
+    // Dlugosc ciaglego bloku o co najmniej tej samej frekwencji
+    const getBlockLength = (date: string, time: string, minCount: number): number => {
+      let len = 1;
+      let currTime = time;
+      while (true) {
+        const nextKey = getNextSlotKey(date, currTime);
+        const nextCount = map.get(nextKey) || 0;
+        if (nextCount >= minCount && minCount > 0) {
+          len++;
+          currTime = nextKey.split('T')[1];
+        } else {
+          break;
+        }
+      }
+      return len;
+    };
+
+    const sortedSlots = Array.from(map.entries())
+      .filter(([_, count]) => count > 0)
+      .map(([slot, count]) => {
+        const [date, time] = slot.split('T');
+        return {
+          slot,
+          date,
+          time,
+          count,
+          blockLength: getBlockLength(date, time, count)
+        };
+      })
+      .sort((a, b) => {
+        // 1. Najwyzsza frekwencja
+        if (b.count !== a.count) return b.count - a.count;
+        // 2. Dluzszy ciagly blok spotkania (np. 4 kolejne sloty wygrywaja z 1 pojedynczym slotem)
+        if (b.blockLength !== a.blockLength) return b.blockLength - a.blockLength;
+        // 3. Wczesniejsza data
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        // 4. Wczesniejsza godzina
+        return a.time.localeCompare(b.time);
+      });
+
+    if (sortedSlots.length === 0) return null;
+    const top = sortedSlots[0];
+    return { date: top.date, time: top.time, count: top.count };
   }, [details]);
 
   const handleAuthenticated = (token: string, authedUser: User) => {
