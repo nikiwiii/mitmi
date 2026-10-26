@@ -159,25 +159,31 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
           <div className="form-row-2">
             <div className="form-group">
               <label className="form-label">Godzina rozpoczęcia</label>
-              <input
-                type="number"
-                min="0"
-                max="23"
+              <select
                 className="form-input"
                 value={startHour}
                 onChange={e => setStartHour(Number(e.target.value))}
-              />
+              >
+                {Array.from({ length: 24 }, (_, hour) => (
+                  <option key={hour} value={hour}>
+                    {String(hour).padStart(2, '0')}:00
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label className="form-label">Godzina zakończenia</label>
-              <input
-                type="number"
-                min="1"
-                max="24"
+              <select
                 className="form-input"
                 value={endHour}
                 onChange={e => setEndHour(Number(e.target.value))}
-              />
+              >
+                {Array.from({ length: 24 }, (_, index) => index + 1).map(hour => (
+                  <option key={hour} value={hour}>
+                    {String(hour).padStart(2, '0')}:00
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
