@@ -38,6 +38,8 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
   const [hoverInfo, setHoverInfo] = useState<SlotHoverInfo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragSelectMode, setDragSelectMode] = useState<boolean>(true);
+  const [datePage, setDatePage] = useState(0);
+  const datesPerPage = 7;
 
   // Wybrany dzien dla widoku mobilnego
   const [selectedDate, setSelectedDate] = useState<string>(() => meeting.dates[0] || '');
@@ -67,6 +69,11 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
       setSelectedDate(meeting.dates[0]);
     }
   }, [meeting.dates, selectedDate]);
+
+  useEffect(() => {
+    const lastPage = Math.max(0, Math.ceil(meeting.dates.length / datesPerPage) - 1);
+    if (datePage > lastPage) setDatePage(lastPage);
+  }, [datePage, meeting.dates.length]);
 
   const isPillDraggingRef = useRef(false);
   const pillStartXRef = useRef(0);
@@ -112,7 +119,10 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
       ? selectedDate
       : meeting.dates[0] || '';
 
-  const displayedDates = isMobile ? (activeDate ? [activeDate] : []) : meeting.dates;
+  const displayedDates = isMobile
+    ? (activeDate ? [activeDate] : [])
+    : meeting.dates.slice(datePage * datesPerPage, (datePage + 1) * datesPerPage);
+  const datePageCount = Math.ceil(meeting.dates.length / datesPerPage);
 
   // generowanie godzin w przedziale co 30 minut
   const timeSlots: string[] = [];
@@ -540,6 +550,30 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
         </div>
       )}
 
+      {!isMobile && datePageCount > 1 && (
+        <div className="desktop-date-pagination" aria-label="Strony z dniami">
+          <button
+            type="button"
+            className="desktop-date-page-button"
+            onClick={() => setDatePage(page => Math.max(0, page - 1))}
+            disabled={datePage === 0}
+            aria-label="Poprzednie dni"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span>{datePage + 1} / {datePageCount}</span>
+          <button
+            type="button"
+            className="desktop-date-page-button"
+            onClick={() => setDatePage(page => Math.min(datePageCount - 1, page + 1))}
+            disabled={datePage >= datePageCount - 1}
+            aria-label="Następne dni"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
+
       <div
         className="grid-scroll-wrapper"
         onMouseLeave={() => {
@@ -552,7 +586,7 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
             style={{
               gridTemplateColumns: isMobile
                 ? '60px 1fr'
-                : `70px repeat(${meeting.dates.length}, minmax(100px, 1fr))`
+                : `70px repeat(${displayedDates.length}, minmax(100px, 1fr))`
             }}
           >
             <br />
@@ -583,7 +617,7 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
               style={{
                 gridTemplateColumns: isMobile
                   ? '60px 1fr'
-                  : `70px repeat(${meeting.dates.length}, minmax(100px, 1fr))`
+                  : `70px repeat(${displayedDates.length}, minmax(100px, 1fr))`
               }}
             >
               <span className="time-row-label">{time}</span>
@@ -737,4 +771,3 @@ export const AvailabilityGrid: React.FC<AvailabilityGridProps> = ({
     </section>
   );
 };
-
