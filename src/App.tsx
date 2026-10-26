@@ -294,13 +294,9 @@ export const App: React.FC = () => {
     startHour: number;
     endHour: number;
   }) => {
-    try {
-      const created = await createNewMeeting(data);
-      openMeeting(created.id);
-      showToast(`Utworzono spotkanie: ${created.title}`);
-    } catch {
-      showToast('Błąd tworzenia spotkania.');
-    }
+    const created = await createNewMeeting(data);
+    openMeeting(created.id);
+    showToast(`Utworzono spotkanie: ${created.title}`);
   };
 
   // po usunieciu lub opuszczeniu otwartego spotkania wracamy do listy

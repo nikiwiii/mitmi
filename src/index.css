@@ -1843,6 +1843,53 @@ body {
   gap: 12px;
 }
 
+.meeting-date-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.meeting-date-picker .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.meeting-date-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meeting-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 10px;
+  border: 1px solid rgba(47, 158, 87, 0.25);
+  border-radius: 999px;
+  background: rgba(47, 158, 87, 0.08);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+}
+
+.meeting-date-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.meeting-date-remove:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .avatar-picker-row {
   display: flex;
   gap: 8px;
