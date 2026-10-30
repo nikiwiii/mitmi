@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Response, NextFunction } from "express";
 import { AuthedRequest } from "../middleware/auth.middleware.js";
 import {
   getUserMeetings,
@@ -10,16 +10,24 @@ import {
   removeAvailability,
 } from "../services/meeting.service.js";
 
-export async function listUserMeetings(req: AuthedRequest, res: Response) {
+export async function listUserMeetings(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const meetings = await getUserMeetings(req.user!.id);
     return res.json(meetings);
-  } catch {
-    return res.status(500).json({ error: "blad serwera" });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function getMeetingById(req: AuthedRequest, res: Response) {
+export async function getMeetingById(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const result = await getMeetingDetails(
       req.params.id as string,
@@ -29,24 +37,32 @@ export async function getMeetingById(req: AuthedRequest, res: Response) {
       return res.status(result.status).json({ error: result.error });
     }
     return res.json(result.data);
-  } catch {
-    return res.status(500).json({ error: "blad serwera" });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function createMeeting(req: AuthedRequest, res: Response) {
+export async function createMeeting(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const result = await createNewMeeting(req.body, req.user!.id);
     if (!result.success) {
       return res.status(result.status).json({ error: result.error });
     }
     return res.status(201).json(result.data);
-  } catch {
-    return res.status(500).json({ error: "blad tworzenia spotkania" });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function deleteMeeting(req: AuthedRequest, res: Response) {
+export async function deleteMeeting(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const result = await removeMeeting(
       req.params.id as string,
@@ -56,12 +72,16 @@ export async function deleteMeeting(req: AuthedRequest, res: Response) {
       return res.status(result.status).json({ error: result.error });
     }
     return res.json({ success: true });
-  } catch {
-    return res.status(500).json({ error: "blad usuwania spotkania" });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function leaveMeeting(req: AuthedRequest, res: Response) {
+export async function leaveMeeting(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+) {
   try {
     await leaveMeetingService(
       req.params.id as string,
@@ -69,14 +89,15 @@ export async function leaveMeeting(req: AuthedRequest, res: Response) {
       req.user!.username
     );
     return res.json({ success: true });
-  } catch {
-    return res.status(500).json({ error: "blad opuszczania spotkania" });
+  } catch (err) {
+    next(err);
   }
 }
 
 export async function setMeetingAvailability(
   req: AuthedRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
   try {
     const result = await saveAvailability(
@@ -90,14 +111,15 @@ export async function setMeetingAvailability(
       return res.status(result.status).json({ error: result.error });
     }
     return res.json(result.data);
-  } catch {
-    return res.status(500).json({ error: "blad zapisu dostepnosci" });
+  } catch (err) {
+    next(err);
   }
 }
 
 export async function deleteMeetingAvailability(
   req: AuthedRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
   try {
     await removeAvailability(
@@ -105,7 +127,7 @@ export async function deleteMeetingAvailability(
       req.user!.username
     );
     return res.json({ success: true });
-  } catch {
-    return res.status(500).json({ error: "blad usuwania dostepnosci" });
+  } catch (err) {
+    next(err);
   }
 }

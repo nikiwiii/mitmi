@@ -216,6 +216,7 @@ export async function createUser(username: string, passwordHash: string, avatar:
       return user;
     } catch (err: any) {
       if (err?.code === '23505') return null;
+      console.error('[db] Error in createUser:', err);
     }
   }
 
@@ -230,7 +231,8 @@ export async function findUserByName(username: string): Promise<UserRecord | nul
     try {
       const res = await pool.query('select * from users where lower(username) = lower($1)', [username]);
       if (res.rows.length) return rowToUser(res.rows[0]);
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in findUserByName:', err);
     }
   }
   return [...memoryUsers.values()].find(u => u.username.toLowerCase() === username.toLowerCase()) || null;
@@ -241,7 +243,8 @@ export async function findUserById(id: string): Promise<User | null> {
     try {
       const res = await pool.query('select * from users where id = $1', [id]);
       if (res.rows.length) return toPublicUser(rowToUser(res.rows[0]));
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in findUserById:', err);
     }
   }
   const u = memoryUsers.get(id);
@@ -256,7 +259,8 @@ export async function updateUserAvatar(id: string, avatar: string): Promise<User
       const user = rowToUser(res.rows[0]);
       await pool.query('update availabilities set user_avatar = $2 where lower(user_name) = lower($1)', [user.username, avatar]);
       return toPublicUser(user);
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in updateUserAvatar:', err);
     }
   }
 
@@ -285,7 +289,8 @@ export async function getMeeting(id: string): Promise<{ meeting: Meeting; partic
         updatedAt: r.updated_at
       }));
       return { meeting, participants };
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in getMeeting:', err);
     }
   }
 
@@ -303,7 +308,8 @@ export async function addMember(meetingId: string, userId: string): Promise<void
         [meetingId, userId]
       );
       return;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in addMember:', err);
     }
   }
   const members = memoryMembers.get(meetingId) || new Map<string, number>();
@@ -317,7 +323,8 @@ export async function removeMember(meetingId: string, userId: string, userName: 
       await pool.query('delete from meeting_members where meeting_id = $1 and user_id = $2', [meetingId, userId]);
       await pool.query('delete from availabilities where meeting_id = $1 and lower(user_name) = lower($2)', [meetingId, userName]);
       return;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in removeMember:', err);
     }
   }
   memoryMembers.get(meetingId)?.delete(userId);
@@ -340,7 +347,8 @@ export async function listMeetingsForUser(userId: string): Promise<MeetingSummar
         participantCount: parseInt(r.participant_count),
         isOwner: r.owner_id === userId
       }));
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in listMeetingsForUser:', err);
     }
   }
 
@@ -370,7 +378,8 @@ export async function createMeeting(m: Meeting): Promise<Meeting> {
       );
       if (m.ownerId) await addMember(m.id, m.ownerId);
       return m;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in createMeeting:', err);
     }
   }
   memoryMeetings.set(m.id, m);
@@ -386,7 +395,8 @@ export async function deleteMeeting(id: string): Promise<void> {
     try {
       await pool.query('delete from meetings where id = $1', [id]);
       return;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in deleteMeeting:', err);
     }
   }
   memoryMeetings.delete(id);
@@ -411,7 +421,8 @@ export async function setAvailability(meetingId: string, userName: string, userA
         do update set slots = excluded.slots, user_avatar = excluded.user_avatar, updated_at = now()
       `, [meetingId, userName, item.userAvatar, JSON.stringify(slots)]);
       return item;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in setAvailability:', err);
     }
   }
 
@@ -431,7 +442,8 @@ export async function deleteAvailability(meetingId: string, userName: string): P
     try {
       await pool.query('delete from availabilities where meeting_id = $1 and lower(user_name) = lower($2)', [meetingId, userName]);
       return true;
-    } catch {
+    } catch (err) {
+      console.error('[db] Error in deleteAvailability:', err);
     }
   }
 

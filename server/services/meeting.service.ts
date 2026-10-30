@@ -9,7 +9,7 @@ import {
   deleteAvailability,
   listMeetingsForUser,
 } from "../db.js";
-import { validateMeetingInput } from "../utils/meetingValidator.js";
+import { validateMeetingInput, validateSlots } from "../utils/meetingValidator.js";
 
 export type ServiceResult<T> =
   | { success: true; data: T; status?: number }
@@ -143,8 +143,16 @@ export async function saveAvailability(
     };
   }
 
-  const slotList = Array.isArray(slots) ? (slots as string[]) : [];
-  const updated = await setAvailability(meetingId, username, avatar, slotList);
+  const slotValidation = validateSlots(slots, meetingData.meeting);
+  if (!slotValidation.isValid || !slotValidation.slots) {
+    return {
+      success: false,
+      error: slotValidation.error || "Nieprawidłowe dane slotów",
+      status: 400,
+    };
+  }
+
+  const updated = await setAvailability(meetingId, username, avatar, slotValidation.slots);
   await addMember(meetingId, userId);
 
   return {
